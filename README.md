@@ -2,9 +2,81 @@
 
 A web app for running a lab inventory. Each lab builds its own **modules** — antibodies, reagents, cell lines, mice/PDX, protocols, or anything else — and links them to **experiments**. When an experiment draft is saved, the amounts used are subtracted from stock automatically.
 
+### ▶ [Try the live demo](https://fatemehahmadi999.github.io/lab-inventory-modular/)
+
+The demo opens a sample lab with antibodies, reagents, cell lines, mice and experiments. You are its admin, so you can try everything. It runs only in your browser: nothing is sent to a server, and **Start over** resets it.
+
 **Every lab runs its own copy**, on its own GitHub account and its own Firebase project. No lab can see another lab's data.
 
 Setting it up takes about 30 minutes. Everything happens in the browser. You do not need a terminal or any programming.
+
+---
+
+## Why use it
+
+| What you get | What it means |
+|---|---|
+| **Free** | It runs on free services: GitHub Pages and the free Firebase plan. No license, no subscription. |
+| **Easy to use** | A clean web page that works on computers, tablets and phones. Nothing to install. |
+| **Customizable** | You decide what your lab tracks. Build your own modules, fields and dropdowns — no programming. |
+| **All in one** | Reagents, antibodies, kits, cell lines, mice, protocols, projects and experiments in one place, linked to each other. |
+| **Keeps track for you** | Saving an experiment subtracts what it used. Stock is always current, without manual counting. |
+| **Never run out** | Low-stock and expiry warnings, a ready-made **To order** list, an **Order** button that opens the supplier page, and optional email alerts. |
+| **Safety at a glance** | Reagents show their GHS hazard pictograms and your lab's colour code right in the list. |
+| **Safe** | Each lab has its own database. Only invited people get in, with roles (admin, member, viewer). One click downloads a full **backup**. |
+| **Traceable** | Every change is logged: who did what, and when. Each item also keeps its own history. |
+
+---
+
+## How to use it — a short tour
+
+The easiest way to learn is the [live demo](https://fatemehahmadi999.github.io/lab-inventory-modular/). The tour below follows a normal lab week.
+
+### 1. Find anything in seconds
+- Type into **Search all items** at the top. It searches every module at once: names, catalog numbers, clones, locations, sequences.
+- Each module page (left menu, under **Inventory**) is a table. Click a column title to sort. Use the filters to show, for example, only low-stock items or one purpose.
+- Click a row to open the item's side panel: all its details, its stock, its history, and the experiments that use it.
+
+### 2. Add a new item
+1. Open the module, for example **Antibodies**, and click **Add antibody**.
+2. Fill in what you know. Only fields marked with * are required.
+3. Paste the supplier page into **Product / order link**, so everyone can reorder it with one click.
+   - For reagents, tick the **hazard pictograms (GHS)** that apply, and pick a **Colour code** if your lab uses one (for example red for "fume hood only"). Pictograms show next to the name, and the colour tints the item's row and side panel, so the risk is visible at a glance.
+4. Click **Add**. To add a similar item, open it and click **Duplicate**.
+
+### 3. Keep stock up to date
+- **In experiments (the normal way):** stock goes down by itself when you save an experiment (see step 4).
+- **By hand:** open the item → **Update stock** → choose **Use some**, **Add (restock)** or **Set exact amount**. Add a short note if helpful.
+- **Items counted per part** (for example tissue samples per organ of a mouse): use the **−** and **+** next to each part.
+- To change one field for many items at once (for example after moving a freezer box), tick them in the table and click **Change a field**.
+
+### 4. Record an experiment
+1. Click **New experiment**. Enter a title, date, project and aim.
+2. In the **Inventory** panel on the right, search and click the items you use. Type the amount for each. (Both `1.5` and `1,5` work.)
+3. Link protocols under **Linked records**. This does not change any stock.
+4. Click **Save draft**. The amounts are now **reserved** from stock, so nobody else can use the same material.
+5. Later, add results, next steps, notes and files. Editing the amounts changes only the difference.
+6. Click **Finalize** when it's done, and **Print** for your paper lab book.
+
+If you delete an experiment, you choose: **return the stock** (it wasn't used) or **keep it as used** (for example a failed run).
+
+### 5. Order before you run out
+- **Overview** shows what needs attention: low, out of stock, expired or expiring within 30 days.
+- **To order** lists everything at or below its low-stock level. Click **Order** to open the supplier page, or **Copy as text** / **Export CSV** to send the list to whoever orders.
+- With email alerts on, the person whose experiment used up an item gets an email.
+
+### 6. Group work into projects
+**Projects** collect the items and experiments of one study, for example all antibodies, models and runs of one paper.
+
+### 7. See who did what
+**Activity** lists every change: who, what, and when. Filter by person, search it, or export it as CSV. Each item also shows its own history in its side panel.
+
+### 8. For admins: shape the inventory
+- **Modules:** add one from a template or build your own. Choose its fields (text, numbers, dates, dropdowns, checklists, links, sequences, formatted text, tables, files), how stock is counted (one amount, counted per part, or none), and how experiments use it (reserve from stock, link for reference, or not at all). Mark a link field as **Order link** to get the Order button, a checklist as **hazard pictograms**, and a dropdown as **colour code**.
+- **People:** invite colleagues by email and give each a role: admin, member or viewer.
+- **Lab settings:** rename the lab, **download a backup**, restore one, or import from the original Lab Inventory.
+
+> **Tip:** download a backup at least once a month, and before big changes. Keep it on a lab drive.
 
 ---
 
@@ -201,23 +273,26 @@ The import only reads the file. The old app and its data are not changed. Import
 
 ### Low-stock emails (EmailJS)
 
-The app can email the person who created an experiment when stock drops below its alert level.
+When an experiment uses up an item and its stock drops to the low-stock level, the person who created the experiment gets an email. It uses EmailJS, which is free for up to 200 emails per month.
 
-1. Create a free account at <https://www.emailjs.com>, add an email service, and create a template using the variables `to_email`, `material_name`, `stock`, `unit`, `location`, `experiment_title`.
-2. In `config.js`, replace `emailjs: null,` with your IDs:
+1. **Create an account:** <https://dashboard.emailjs.com/sign-up>
+2. **Connect an email account:** **Email Services** → **Add New Service** → pick your provider (for example Gmail or Outlook) → connect it → **Create Service**. Note the **Service ID** (`service_…`).
+3. **Create the email template:** **Email Templates** → **Create New Template**.
+   - **To Email:** `{{to_email}}` — exactly this. It sends each alert to the right person.
+   - **Subject:** for example `Low stock: {{material_name}}`
+   - **Content:** for example
+     `{{material_name}} is running low: {{stock}} {{unit}} left (stored at {{location}}). Used in "{{experiment_title}}" on {{experiment_date}} by {{updated_by}}.`
+   - Click **Save**. Note the **Template ID** (`template_…`).
+4. **Find your Public Key:** **Account** → **General** → **Public Key**.
+5. **Put the three values into `config.js`** in your lab's copy (pencil icon → edit → commit). Replace `emailjs: null,` with:
 
    ```js
    emailjs: { serviceId: "service_…", templateId: "template_…", publicKey: "…" },
    ```
 
----
+6. **If you use domain protection:** under **Account** → **Security**, EmailJS can limit which websites may send emails. If you turned this on, add `https://OWNER.github.io` there.
 
-## Using the app
-
-- **Modules** (admins): add from a template or build your own. For each module you choose its fields, how stock is counted (one amount, counted per part, or none), and whether experiments **reserve from stock**, **link for reference**, or don't use it.
-- **Dropdown fields:** users can always add a new choice. Preset choices are optional.
-- **Experiments:** saving a draft subtracts the amounts right away. Editing changes only the difference. Deleting lets you return the stock or keep it as used.
-- **Backups:** **Lab settings → Download backup** saves everything as one JSON file. Do this at least once a month.
+The values are not secret. They only say which email account and template to use.
 
 ---
 

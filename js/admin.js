@@ -162,6 +162,9 @@ function fieldEditorRow(f, i, k, n) {
         ${['richtext', 'table', 'file'].includes(f.type) ? '' : `<label class="check"><input type="checkbox" class="fe-inlist"${f.inList ? ' checked' : ''}${isName ? ' checked disabled' : ''}>Show in table</label>`}
         <label class="check"><input type="checkbox" class="fe-req"${f.required || isName ? ' checked' : ''}${isName || f.type === 'checkbox' || f.type === 'file' ? ' disabled' : ''}>Required</label>
         ${f.type === 'date' ? `<label class="check"><input type="checkbox" class="fe-exp"${f.expiry ? ' checked' : ''}>Warn before this date (expiry)</label>` : ''}
+        ${f.type === 'url' ? `<label class="check"><input type="checkbox" class="fe-order"${f.orderLink ? ' checked' : ''}>Order link (shows an Order button)</label>` : ''}
+        ${f.type === 'multiselect' ? `<label class="check"><input type="checkbox" class="fe-ghs"${f.pictograms ? ' checked' : ''}>Show as hazard pictograms (GHS)</label>` : ''}
+        ${f.type === 'select' ? `<label class="check"><input type="checkbox" class="fe-color"${f.colorCode ? ' checked' : ''}>Colour code (tints the row; choices named Yellow, Orange, Red… )</label>` : ''}
         ${isName ? '<span class="muted small">Every item needs a name. You can rename this field.</span>' : ''}
         ${f.isNew ? '<span class="badge">New</span>' : ''}
       </div>
@@ -197,6 +200,9 @@ function syncModForm() {
       f.required = !!$('.fe-req', row)?.checked && !['checkbox', 'file'].includes(f.type);
     }
     f.expiry = f.type === 'date' && !!$('.fe-exp', row)?.checked;
+    f.orderLink = f.type === 'url' && !!$('.fe-order', row)?.checked;
+    f.pictograms = f.type === 'multiselect' && !!$('.fe-ghs', row)?.checked;
+    f.colorCode = f.type === 'select' && !!$('.fe-color', row)?.checked;
     f.help = $('.fe-help', row).value.trim();
     if ($('.fe-opts', row)) f.options = $('.fe-opts', row).value.split('\n').map(s => s.trim()).filter(Boolean);
     if ($('.fe-cols', row)) f.columns = $('.fe-cols', row).value.split(',').map(s => s.trim()).filter(Boolean);
