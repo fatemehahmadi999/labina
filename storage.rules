@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// Storage rules for the modular Lab Inventory (file attachments).
+// Paste this into Firebase console → Storage → Rules → Publish.
+// Only lab members can read files; only admins and members can upload or delete.
+// Single files are limited to 25 MB.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function memberDoc() {
+      return firestore.get(/databases/(default)/documents/members/$(request.auth.uid));
+    }
+    function isMember() {
+      return request.auth != null && firestore.exists(/databases/(default)/documents/members/$(request.auth.uid));
+    }
+    function canEdit() {
+      return isMember() && memberDoc().data.role in ['admin', 'member'];
+    }
+
+    match /{allPaths=**} {
+      allow read: if isMember();
+      allow create, update: if canEdit() && request.resource.size < 25 * 1024 * 1024;
+      allow delete: if canEdit();
+    }
+  }
+}
