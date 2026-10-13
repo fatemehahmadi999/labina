@@ -1,5 +1,5 @@
 window.LAB_CONFIG = {
-  labName: 'Winkler Lab',
+  labName: 'Labina',
 
   firebase: {
     apiKey: "AIzaSyCeiOhEgeL7UDDJmZtDBDWh94iVXtoGJjY",
