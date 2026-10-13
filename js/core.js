@@ -203,6 +203,8 @@ const ICON = {
   down: svg('<path d="M12 5v14M6 13l6 6 6-6"/>'),
   print: svg('<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="1.5"/><path d="M7 14h10v7H7z"/>'),
   out: svg('<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H4"/>'),
+  clock: svg('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+  ext: svg('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
   file: svg('<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5"/>')
 };
 
@@ -210,6 +212,7 @@ const ICON = {
 async function boot() {
   document.addEventListener('click', e => {
     const t = e.target.closest('[data-act]');
+    if (e.target.closest('a[target="_blank"]')) return; // links that open a new tab (Order, product pages) never trigger row actions
     if (!t || t.disabled) return;
     const fn = ACT[t.dataset.act];
     if (!fn) return;
@@ -249,6 +252,7 @@ async function onAuthChange(user) {
   if (!user) return showSignIn();
   try {
     App.lab = await App.store.get('meta', 'lab');
+    if (!App.lab && App.store.mode === 'demo') { await seedDemoLab(user); App.lab = await App.store.get('meta', 'lab'); }
     if (!App.lab) return showSetup();
     App.member = await App.store.get('members', user.uid);
     if (!App.member && App.store.mode === 'demo') {
@@ -279,11 +283,12 @@ ACT.signOut = async () => {
 
 function showSignIn(mode = 'in') {
   if (App.store.mode === 'demo') {
-    showAuthScreen(`<div class="brand-mark">${ICON.flask}</div><h1>Lab Inventory</h1>
-      <p class="lead">Try the app in demo mode. Nothing is sent to a server, and your existing inventory is not touched.</p>
+    showAuthScreen(`<div class="brand-mark">${ICON.flask}</div><h1>Lab Inventory demo</h1>
+      <p class="lead">Look around a sample lab with antibodies, reagents, cell lines, mice and experiments. You are its admin, so you can try everything.</p>
+      <p class="muted small">Everything you do stays in this browser only. Nothing is sent to a server.</p>
       <form id="demoForm" class="stack">
-        <label class="field"><span>Your name</span><input id="demoName" required autocomplete="name" placeholder="e.g. Fatemeh A."></label>
-        <button class="btn primary block">Open demo</button>
+        <label class="field"><span>Your name</span><input id="demoName" required autocomplete="name" placeholder="e.g. Alex"></label>
+        <button class="btn primary block">Open the demo</button>
       </form>`);
     $('#demoForm').addEventListener('submit', e => { e.preventDefault(); const n = $('#demoName').value.trim(); if (n) App.store.signInDemo(n); });
     return;
@@ -432,6 +437,7 @@ function parseRoute() {
   }
   if (p[0] === 'projects') return { name: 'projects' };
   if (p[0] === 'order') return { name: 'order' };
+  if (p[0] === 'activity') return { name: 'activity' };
   if (p[0] === 'admin') {
     if (p[1] === 'modules' && p[2] === 'new') return { name: 'moduleEdit', id: null, tid: p[3] || null };
     if (p[1] === 'modules' && p[2]) return { name: 'moduleEdit', id: p[2] };
@@ -491,6 +497,7 @@ function renderSidebar() {
       ${item('#/experiments', ICON.flask, 'Experiments', r.name.startsWith('exp'))}
       ${item('#/projects', ICON.folder, 'Projects', r.name === 'projects')}
       ${item('#/order', ICON.cart, 'To order', r.name === 'order', low ? `<span class="count warn">${low}</span>` : '')}
+      ${item('#/activity', ICON.clock, 'Activity', r.name === 'activity')}
       <div class="side-label">Inventory</div>
       ${mods.map(m => `<a class="nav-item mod${r.name === 'module' && r.id === m.id ? ' active' : ''}" href="#/m/${m.id}">
           ${tapeDot(m)}<span>${esc(m.name)}</span><span class="count">${recordsOf(m.id).length}</span></a>`).join('')
@@ -572,7 +579,7 @@ VIEWS.home = {
             </tbody></table>
           </section>
           <section class="panel">
-            <header class="panel-head"><h2>Recent activity</h2></header>
+            <header class="panel-head"><h2>Recent activity</h2><a class="link" href="#/activity">See all</a></header>
             <div class="list">${App.log.slice(0, 10).map(l => `<div class="log-row"><span class="grow">${esc(l.desc)}</span><span class="muted small">${esc(l.user)} · ${esc(fmtTs(l.ts))}</span></div>`).join('')
               || '<p class="empty-line">No activity yet.</p>'}</div>
           </section>

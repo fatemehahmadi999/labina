@@ -60,7 +60,7 @@ const TEMPLATES = [
       F('panel', 'Source list / panel'), F('synonym', 'Synonym / alias'),
       F('location', 'Storage location', 'text', { inList: true }),
       F('delivered', 'Delivery date', 'date'), F('expiry', 'Expiry date', 'date', { expiry: true }),
-      F('link', 'Product page', 'url'), F('flag', 'Colour flag', 'select', { options: FLAG_OPTIONS }),
+      F('link', 'Product / order link', 'url', { orderLink: true, help: 'Paste the supplier page, so anyone can click Order.' }), F('flag', 'Colour code', 'select', { options: FLAG_OPTIONS, colorCode: true }),
       F('notes', 'Notes', 'textarea'), F('files', 'Attachments', 'file')
     ]
   },
@@ -75,8 +75,8 @@ const TEMPLATES = [
       F('size', 'Pack size'), F('location', 'Storage location', 'text', { inList: true }),
       F('delivered', 'Delivery date', 'date'), F('opened', 'Date opened', 'date'),
       F('expiry', 'Expiry date', 'date', { expiry: true }),
-      F('hazards', 'Hazards (GHS)', 'multiselect', { options: GHS_HAZARDS }),
-      F('link', 'Datasheet / SDS', 'url'), F('flag', 'Colour flag', 'select', { options: FLAG_OPTIONS }),
+      F('hazards', 'Hazards (GHS)', 'multiselect', { options: GHS_HAZARDS, pictograms: true }),
+      F('link', 'Product / order link', 'url', { orderLink: true, help: 'Paste the supplier page, so anyone can click Order.' }), F('sds', 'Safety data sheet (SDS)', 'url'), F('flag', 'Colour code', 'select', { options: FLAG_OPTIONS, colorCode: true }),
       F('notes', 'Notes', 'textarea'), F('files', 'Attachments', 'file')
     ]
   },
@@ -89,7 +89,7 @@ const TEMPLATES = [
       F('company', 'Company', 'text', { inList: true }), F('catalog', 'Catalog number', 'text', { inList: true }),
       F('lot', 'Lot number'), F('location', 'Storage location', 'text', { inList: true }),
       F('delivered', 'Delivery date', 'date'), F('expiry', 'Expiry date', 'date', { expiry: true }),
-      F('link', 'Product page', 'url'), F('flag', 'Colour flag', 'select', { options: FLAG_OPTIONS }),
+      F('link', 'Product / order link', 'url', { orderLink: true, help: 'Paste the supplier page, so anyone can click Order.' }), F('flag', 'Colour code', 'select', { options: FLAG_OPTIONS, colorCode: true }),
       F('notes', 'Notes', 'textarea'), F('files', 'Attachments', 'file')
     ]
   },
@@ -104,6 +104,7 @@ const TEMPLATES = [
       F('application', 'Application', 'select', { inList: true, options: ['PCR', 'qPCR', 'Sequencing', 'Cloning', 'Other'] }),
       F('stockConc', 'Stock concentration (µM)', 'number'), F('workConc', 'Working concentration (µM)', 'number'),
       F('tm', 'Tm (°C)', 'number'), F('location', 'Storage location', 'text', { inList: true }),
+      F('company', 'Supplier'), F('link', 'Order link', 'url', { orderLink: true, help: 'Paste the supplier page, so anyone can click Order.' }),
       F('notes', 'Notes', 'textarea')
     ]
   },
@@ -118,7 +119,7 @@ const TEMPLATES = [
       F('insert', 'Insert', 'text', { inList: true }), F('insertSize', 'Insert size (bp)', 'number'),
       F('promoter', 'Promoter'), F('resistance', 'Bacterial resistance'), F('selection', 'Selection marker'),
       F('concentration', 'Concentration'), F('addgeneId', 'Addgene ID'), F('receivedFrom', 'Received from'),
-      F('addgeneLink', 'Addgene link', 'url'), F('benchlingLink', 'Benchling link', 'url'),
+      F('addgeneLink', 'Addgene / order link', 'url', { orderLink: true, help: 'For example the Addgene page, so anyone can click Order.' }), F('benchlingLink', 'Benchling link', 'url'),
       F('hostCells', 'Host cell lines'), F('location', 'Storage location', 'text', { inList: true }),
       F('notes', 'Notes', 'textarea'), F('files', 'Attachments', 'file')
     ]
@@ -132,6 +133,7 @@ const TEMPLATES = [
       F('passage', 'Passage', 'number', { inList: true }), F('frozen', 'Date frozen', 'date'),
       F('location', 'Freezer location', 'text', { inList: true }), F('origin', 'Origin / source', 'text', { inList: true }),
       F('mycoplasma', 'Mycoplasma status', 'select', { options: ['Negative', 'Positive', 'Not tested'] }),
+      F('link', 'Supplier / order link', 'url', { orderLink: true, help: 'For example the ATCC page, so anyone can click Order.' }),
       F('notes', 'Notes (genotype, treatment…)', 'textarea'), F('files', 'Attachments', 'file')
     ]
   },

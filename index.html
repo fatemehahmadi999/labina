@@ -164,7 +164,8 @@ input[type=checkbox], input[type=radio] { accent-color: var(--accent); width: 15
 .top-search { position: relative; width: min(340px, 40vw); }
 .top-search .search-box { min-width: 0; height: 32px; background: var(--panel-2); }
 #searchPop { position: absolute; top: 38px; right: 0; width: min(440px, 92vw); max-height: 60vh; overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-pop); padding: 6px; z-index: 30; }
-#demoBanner { background: var(--warn-soft); color: var(--warn); font-size: 12.5px; padding: 6px 24px; border-bottom: 1px solid var(--line); }
+#demoBanner { display: flex; gap: 16px; justify-content: space-between; align-items: center; background: var(--warn-soft); color: var(--warn); font-size: 12.5px; padding: 6px 24px; border-bottom: 1px solid var(--line); }
+#demoBanner .link { color: var(--warn); font-weight: 600; font-size: 12.5px; text-decoration: underline; }
 #main { flex: 1; overflow-y: auto; outline: none; }
 .only-mobile { display: none; }
 
@@ -214,6 +215,20 @@ div.list-row { cursor: default; } div.list-row:hover { background: none; }
 .tbl th.sortable { cursor: pointer; user-select: none; } .tbl th.sortable:hover, .tbl th.sorted { color: var(--ink); }
 .tbl th.sel, .tbl td.sel { width: 36px; padding-right: 0; }
 .tbl td.seq-cell { font-family: var(--mono); font-size: 12px; }
+/* GHS pictograms and colour-code tint */
+.ghs-inline { display: inline-flex; gap: 2px; margin-left: 8px; vertical-align: -5px; }
+.ghs-inline svg { width: 20px; height: 20px; display: block; }
+.ghs-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.ghs-card { width: 76px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px; background: #fff; border: 1px solid var(--line); border-radius: var(--r); text-align: center; }
+.ghs-card svg { width: 46px; height: 46px; }
+.ghs-card span { font-size: 10.5px; font-weight: 600; line-height: 1.2; color: #222; }
+.ghs-checks .check svg { width: 22px; height: 22px; flex: none; }
+.tbl tr[data-tint] td { background: color-mix(in srgb, var(--tb) 20%, var(--panel)); }
+.tbl tr[data-tint] td:first-child { box-shadow: inset 4px 0 0 var(--tb); }
+.tbl tr[data-tint].click:hover td { background: color-mix(in srgb, var(--tb) 32%, var(--panel)); }
+.drawer-head[data-tint] { background: color-mix(in srgb, var(--tb) 24%, var(--panel)); box-shadow: inset 0 4px 0 var(--tb); }
+.order-btn svg { width: 14px; height: 14px; }
+.order-line { margin-top: 8px; }
 .parts-mini { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 8px; font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
 .bulk-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: var(--r); font-size: 13px; }
 .bulk-bar span { margin-right: auto; }
@@ -395,7 +410,7 @@ div.list-row { cursor: default; } div.list-row:hover { background: none; }
 <div id="app" hidden>
   <aside id="sidebar" aria-label="Sidebar"></aside>
   <div class="main-wrap">
-    <div id="demoBanner" hidden>Demo mode — data is saved in this browser only. Your real inventory is not connected or changed.</div>
+    <div id="demoBanner" hidden><span>Demo — you are looking at sample data. Changes are saved only in this browser.</span><button class="link" data-act="resetDemo">Start over</button></div>
     <header class="topbar">
       <button id="menuBtn" class="icon-btn only-mobile" data-act="toggleNav" aria-label="Open menu"></button>
       <nav id="crumbs" aria-label="Breadcrumb"></nav>
@@ -411,13 +426,14 @@ div.list-row { cursor: default; } div.list-row:hover { background: none; }
 <div id="modalRoot"></div>
 <div id="toasts" aria-live="polite"></div>
 
-<script src="config.js?v=3"></script>
-<script src="js/schema.js?v=3"></script>
-<script src="js/store.js?v=3"></script>
-<script src="js/core.js?v=3"></script>
-<script src="js/records.js?v=3"></script>
-<script src="js/experiments.js?v=3"></script>
-<script src="js/admin.js?v=3"></script>
+<script src="config.js?v=6"></script>
+<script src="js/schema.js?v=6"></script>
+<script src="js/store.js?v=6"></script>
+<script src="js/core.js?v=6"></script>
+<script src="js/records.js?v=6"></script>
+<script src="js/experiments.js?v=6"></script>
+<script src="js/admin.js?v=6"></script>
+<script src="js/demo.js?v=6"></script>
 <script>boot();</script>
 </body>
 </html>

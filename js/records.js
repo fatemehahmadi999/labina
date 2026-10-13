@@ -34,7 +34,8 @@ function fieldInput(f, value, prefix, mod = null) {
     case 'multiselect': {
       const cur = Array.isArray(v) ? v : (v ? [v] : []);
       const opts = [...new Set([...(f.options || []), ...cur])];
-      return block(`<div class="checks" id="${id}">${opts.map(o => `<label class="check"><input type="checkbox" value="${esc(o)}"${cur.includes(o) ? ' checked' : ''}>${esc(o)}</label>`).join('')}</div>`, 'wide');
+      const pic = f.pictograms || f.key === 'hazards';
+      return block(`<div class="checks${pic ? ' ghs-checks' : ''}" id="${id}">${opts.map(o => `<label class="check"><input type="checkbox" value="${esc(o)}"${cur.includes(o) ? ' checked' : ''}>${pic ? ghsSvg(o) : ''}${esc(o)}</label>`).join('')}</div>`, 'wide');
     }
     case 'checkbox': return `<label class="field check-field"><span class="check"><input id="${id}" type="checkbox"${v ? ' checked' : ''}>${esc(f.label)}</span>${help}</label>`;
     case 'richtext': return block(richEditor(id, v), 'wide');
@@ -211,6 +212,56 @@ function fieldDisplay(f, v) {
     default: return esc(v);
   }
 }
+
+/* ── Hazard pictograms (GHS) and colour codes ───────────────────────────── */
+const GHS_SYMBOLS = {
+  'Flammable': '<path d="M51 76c-15 0-25-10-25-23 0-12 8-18 15-29 1 9 6 13 10 18 2-9 7-16 14-23 1 13 10 21 10 34 0 13-10 23-24 23zm0-8c7 0 12-5 12-12 0-6-3-10-7-15 0 7-4 11-8 15 0-5-2-9-5-13-2 5-5 8-5 13 0 7 5 12 13 12z" fill="#111"/>',
+  'Toxic': '<g fill="#111" stroke="#111" stroke-width="5" stroke-linecap="round"><line x1="28" y1="69" x2="72" y2="85"/><line x1="72" y1="69" x2="28" y2="85"/><circle cx="50" cy="43" r="20"/><rect x="40" y="57" width="20" height="14" rx="3" stroke="none"/></g><g fill="#fff"><circle cx="43" cy="40" r="5"/><circle cx="57" cy="40" r="5"/><path d="M50 47l-4 7h8z"/></g>',
+  'Corrosive': '<g fill="none" stroke="#111" stroke-width="5" stroke-linecap="round"><path d="M22 25l22 10"/><path d="M58 24l22 10"/><path d="M31 29l-8 20"/><path d="M67 28l-8 20"/></g><g fill="#111"><path d="M21 53c6-4 11-4 16 0-4 6-11 9-17 5z"/><path d="M57 53c6-4 11-4 16 0-4 6-11 9-17 5z"/><path d="M18 72h37v7H18z"/><path d="M58 70c10-9 20-5 24 2-7 0-12 3-17 8l-12-4z"/></g>',
+  'Oxidising': '<circle cx="50" cy="65" r="14" fill="none" stroke="#111" stroke-width="6"/><path d="M50 51c-12-7-15-18-4-31 1 9 6 11 9 17 2-6 5-10 10-15 1 12 7 18 2 27-4 7-11 10-17 8z" fill="#111"/>',
+  'Irritant / harmful': '<rect x="45" y="22" width="10" height="42" rx="4" fill="#111"/><circle cx="50" cy="75" r="7" fill="#111"/>',
+  'Health hazard': '<circle cx="50" cy="28" r="11" fill="#111"/><path d="M26 79c2-24 12-35 24-35s22 11 24 35z" fill="#111"/><path d="M50 48l4 8 9-2-6 8 6 8-9-2-4 8-4-8-9 2 6-8-6-8 9 2z" fill="#fff"/>',
+  'Environmental hazard': '<g fill="#111"><rect x="31" y="33" width="6" height="39"/><path d="M34 25l-15 22h30z"/><path d="M36 38l16 13-4 4-15-10z"/><path d="M51 70c9-9 18-8 28-2-9 9-18 10-28 4l-9 5 3-9-3-8z"/></g><circle cx="70" cy="69" r="2" fill="#fff"/>',
+  'Explosive': '<g fill="#111"><circle cx="48" cy="54" r="10"/><path d="M48 18l5 23-10-1zM76 25L60 45l-6-8zM82 56l-22 3 1-10zM71 82L56 63l8-5zM35 84l6-22 9 5zM16 65l23-7 1 10zM20 33l21 13-7 7z"/></g>',
+  'Compressed gas': '<g fill="#111"><rect x="24" y="42" width="53" height="22" rx="7"/><rect x="74" y="47" width="8" height="12" rx="2"/><rect x="18" y="46" width="9" height="14" rx="2"/></g>',
+  'Radioactive': '<g fill="#111"><circle cx="50" cy="54" r="5"/><path d="M50 54L38 33a24 24 0 0 1 24 0z"/><path d="M50 54l24 0a24 24 0 0 1-12 21z"/><path d="M50 54L38 75a24 24 0 0 1-12-21z"/></g>',
+  'Biohazard': '<g fill="none" stroke="#111" stroke-width="5"><circle cx="50" cy="40" r="10"/><circle cx="39" cy="60" r="10"/><circle cx="61" cy="60" r="10"/></g><circle cx="50" cy="54" r="4" fill="#111"/>'
+};
+const GHS_ALIASES = { 'Irritant': 'Irritant / harmful', 'Harmful': 'Irritant / harmful' };
+function ghsSvg(name) {
+  const key = GHS_ALIASES[name] || name;
+  const inner = GHS_SYMBOLS[key] || '<text x="50" y="67" text-anchor="middle" font-size="44" font-family="Arial" font-weight="700" fill="#111">!</text>';
+  return `<svg viewBox="0 0 100 100" role="img" aria-label="${esc(name)}"><polygon points="50,4 96,50 50,96 4,50" fill="#fff" stroke="#d61f26" stroke-width="7"/>${inner}</svg>`;
+}
+const hazardField = mod => visibleFields(mod).find(f => f.type === 'multiselect' && (f.pictograms || f.key === 'hazards')) || null;
+const colorField = mod => visibleFields(mod).find(f => f.type === 'select' && (f.colorCode || f.key === 'flag')) || null;
+function hazardsOf(r, mod) { const f = hazardField(mod); const v = f ? r?.data?.[f.key] : null; return Array.isArray(v) ? v : (v ? [v] : []); }
+function tapeFor(value) { return Object.values(TAPES).find(x => x.name.toLowerCase() === String(value || '').toLowerCase()) || null; }
+function colorOf(r, mod) { const f = colorField(mod); return f ? tapeFor(r?.data?.[f.key]) : null; }
+/* small pictograms next to a name (tables, lists) */
+function pictosInline(r, mod) {
+  const hz = hazardsOf(r, mod);
+  return hz.length ? `<span class="ghs-inline">${hz.map(h => `<span title="${esc(h)}">${ghsSvg(h)}</span>`).join('')}</span>` : '';
+}
+/* large pictograms with labels (side panel) */
+function pictosLarge(r, mod) {
+  const hz = hazardsOf(r, mod);
+  return hz.length ? `<div class="ghs-list">${hz.map(h => `<div class="ghs-card">${ghsSvg(h)}<span>${esc(h)}</span></div>`).join('')}</div>` : '';
+}
+/* style attribute that tints a row or panel with the item's colour code */
+function tintAttr(r, mod) { const t = colorOf(r, mod); return t ? ` data-tint style="--tb:${t.bg}"` : ''; }
+
+/* The URL field used for the Order button: marked as order link, or a url field named "link". */
+function orderField(mod) {
+  const urls = visibleFields(mod).filter(f => f.type === 'url');
+  return urls.find(f => f.orderLink) || urls.find(f => f.key === 'link') || null;
+}
+function orderUrl(r, mod = modById(r?.moduleId)) { const f = orderField(mod); return f ? safeUrl(r?.data?.[f.key]) : ''; }
+function orderButton(r, mod, cls = 'btn sm') {
+  const u = orderUrl(r, mod);
+  return u ? `<a class="${cls} order-btn" href="${esc(u)}" target="_blank" rel="noopener" title="Open the supplier page">${ICON.ext}Order</a>` : '';
+}
+
 function flagChip(v) {
   const t = Object.entries(TAPES).find(([, x]) => x.name.toLowerCase() === String(v).toLowerCase());
   return t ? `<span class="flag" style="--tb:${t[1].bg}"></span>${esc(v)}` : '';
@@ -294,6 +345,7 @@ function renderModuleTable(mod) {
   const sel = App.sel[mod.id] = App.sel[mod.id] || new Set();
   [...sel].forEach(id => { if (!recById(id)) sel.delete(id); });
   const hasStock = mod.stock?.mode !== 'none';
+  const hasOrder = !!orderField(mod);
   const th = (key, label, cls = '') => `<th class="sortable ${cls}${ui.sortKey === key ? ' sorted' : ''}" data-act="sortBy" data-key="${key}" data-mod="${mod.id}" aria-sort="${ui.sortKey === key ? (ui.dir > 0 ? 'ascending' : 'descending') : 'none'}">${esc(label)}${ui.sortKey === key ? (ui.dir > 0 ? ' ▲' : ' ▼') : ''}</th>`;
   const nameField = mod.fields.find(f => f.key === 'name');
   const total = recordsOf(mod.id).length;
@@ -306,17 +358,17 @@ function renderModuleTable(mod) {
   const allSel = recs.length && recs.every(r => sel.has(r.id));
   $('#modTable').innerHTML = `<table class="tbl">
     <thead><tr><th class="sel"><input type="checkbox" data-act="selAll" data-mod="${mod.id}" aria-label="Select all shown"${allSel ? ' checked' : ''}></th>
-      ${th('name', nameField?.label || 'Name')}${cols.map(f => th(f.key, f.label)).join('')}${hasStock ? th('__stock', 'Stock', 'r') : ''}</tr></thead>
+      ${th('name', nameField?.label || 'Name')}${cols.map(f => th(f.key, f.label)).join('')}${hasStock ? th('__stock', 'Stock', 'r') : ''}${hasOrder ? '<th class="r">Order</th>' : ''}</tr></thead>
     <tbody>${recs.map(r => {
       const st = stockState(r, mod);
       const stock = mod.stock?.mode === 'single'
         ? `<span class="num">${fmtNum(r.stock ?? 0)}</span> <span class="muted">${esc(recUnit(r, mod))}</span> ${st !== 'ok' ? stockBadge(st) : ''}`
         : mod.stock?.mode === 'parts' ? `<span class="num">${fmtNum(partsTotal(r))}</span> <span class="muted">${esc(recUnit(r, mod))}</span><div class="parts-mini">${partsSummary(r, mod)}</div>` : '';
-      return `<tr class="click${sel.has(r.id) ? ' selected' : ''}" data-act="openRecord" data-id="${r.id}">
+      return `<tr class="click${sel.has(r.id) ? ' selected' : ''}" data-act="openRecord" data-id="${r.id}"${tintAttr(r, mod)}>
         <td class="sel"><input type="checkbox" data-act="selOne" data-mod="${mod.id}" data-id="${r.id}" aria-label="Select ${esc(recName(r))}"${sel.has(r.id) ? ' checked' : ''}></td>
-        <td class="name">${flagFor(r, mod)}${esc(recName(r))}</td>
+        <td class="name">${flagFor(r, mod)}${esc(recName(r))}${pictosInline(r, mod)}</td>
         ${cols.map(f => `<td class="${f.type === 'number' ? 'r num' : ''}${f.type === 'sequence' ? ' seq-cell' : ''}">${f.type === 'sequence' ? esc(String(r.data?.[f.key] || '').slice(0, 28)) + (String(r.data?.[f.key] || '').length > 28 ? '…' : '') : fieldDisplay(f, r.data?.[f.key])}</td>`).join('')}
-        ${hasStock ? `<td class="r">${stock}</td>` : ''}</tr>`;
+        ${hasStock ? `<td class="r">${stock}</td>` : ''}${hasOrder ? `<td class="r">${orderButton(r, mod, 'btn sm ghost') || '<span class="muted small">—</span>'}</td>` : ''}</tr>`;
     }).join('') || `<tr><td colspan="${cols.length + 3}" class="empty-line">No items match your search or filters.</td></tr>`}</tbody></table>`;
   renderBulkBar(mod);
 }
@@ -324,10 +376,10 @@ function partsSummary(r, mod) {
   return (mod.stock.parts || []).filter(p => Number(r.parts?.[p.key] || 0) > 0).map(p => `<span>${esc(p.label)} ${fmtNum(r.parts[p.key])}</span>`).join('');
 }
 function flagFor(r, mod) {
-  const f = visibleFields(mod).find(x => x.key === 'flag' && x.type === 'select');
-  const v = f && r.data?.flag;
-  const t = v && Object.values(TAPES).find(x => x.name.toLowerCase() === String(v).toLowerCase());
-  return t ? `<span class="flag" style="--tb:${t.bg}" title="${esc(v)} flag"></span>` : '';
+  const f = colorField(mod);
+  const v = f && r.data?.[f.key];
+  const t = tapeFor(v);
+  return t ? `<span class="flag" style="--tb:${t.bg}" title="Colour code: ${esc(v)}"></span>` : '';
 }
 ACT.sortBy = el => {
   const ui = modUi(el.dataset.mod);
@@ -445,15 +497,18 @@ DRAWERS.record = d => {
           <button class="icon-btn sm" data-act="partStep" data-id="${r.id}" data-part="${esc(p.key)}" data-d="1" aria-label="Add one ${esc(p.label)}">+</button></span>` : ''}</div>`;
       }).join('')}</div></section>`;
   }
-  const rows = visibleFields(mod).filter(f => f.key !== 'name').map(f => {
+  const hzf = hazardField(mod), cf = colorField(mod);
+  const rows = visibleFields(mod).filter(f => f.key !== 'name' && f !== hzf).map(f => {
     const html = fieldDisplay(f, r.data?.[f.key]);
     if (!html) return '';
     const wide = ['richtext', 'table', 'file', 'textarea', 'sequence'].includes(f.type);
     return `<div class="dl-row${wide ? ' wide' : ''}"><dt>${esc(f.label)}</dt><dd>${html}</dd></div>`;
   }).join('');
   openDrawer(`
-    <header class="drawer-head">
+    <header class="drawer-head"${tintAttr(r, mod)}>
       <div>${tapeLabel(mod, true)}<h2>${flagFor(r, mod)}${esc(recName(r))}</h2>
+        ${pictosLarge(r, mod)}
+        ${orderField(mod) ? `<div class="order-line">${orderButton(r, mod, 'btn sm primary') || `<span class="muted small">No order link yet.${canEdit() ? ' Click Edit to add the supplier page.' : ''}</span>`}</div>` : ''}
         <p class="muted small">Added by ${esc(r.createdBy || '?')} on ${esc(fmtDate(new Date(r.createdAt || Date.now()).toISOString().slice(0, 10)))}${r.updatedAt ? ` · updated ${esc(fmtTs(r.updatedAt))}` : ''}</p></div>
       <button class="icon-btn" data-act="closeDrawer" aria-label="Close">${ICON.x}</button>
     </header>

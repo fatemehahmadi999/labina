@@ -328,7 +328,7 @@ function renderPicker() {
       }
       const it = { recordId: r.id, part: '' }, n = availableForForm(it), isSel = selected.has(itemKey(it));
       return `<button type="button" class="pick-item" data-act="addExpItem" data-id="${r.id}"${isSel || n <= 0 ? ' disabled' : ''}>
-        <span class="grow"><span class="nm">${esc(recName(r))}</span><span class="muted small">${esc(sub(r, mod))}</span></span>
+        <span class="grow"><span class="nm">${flagFor(r, mod)}${esc(recName(r))}${pictosInline(r, mod)}</span><span class="muted small">${esc(sub(r, mod))}</span></span>
         <span class="num small">${isSel ? 'Added' : n <= 0 ? 'Out' : `${fmtNum(n)} ${esc(recUnit(r, mod))}`}</span></button>`;
     }).join('');
     if (!rows) return '';
@@ -535,19 +535,55 @@ VIEWS.order = {
       <header class="page-head"><div><h1>To order</h1><p class="sub">Everything at or below its low-stock level.</p></div>
         <div class="actions">${groups.length ? `<button class="btn ghost" data-act="copyOrder">Copy as text</button><button class="btn" data-act="exportOrder">Export CSV</button>` : ''}</div></header>
       ${groups.map(({ m, recs }) => `<section class="panel flush"><header class="panel-head">${tapeLabel(m, true)}<span class="muted small">${plural(recs.length, 'item')}</span></header>
-        <div class="tbl-scroll"><table class="tbl"><thead><tr><th>Name</th><th class="r">Have</th><th class="r">Alert at</th><th>Company</th><th>Catalog</th><th>Location</th></tr></thead><tbody>
-        ${recs.map(r => `<tr class="click" data-act="openRecord" data-id="${r.id}"><td class="name">${esc(recName(r))} ${stockBadge(stockState(r, m))}</td>
+        <div class="tbl-scroll"><table class="tbl"><thead><tr><th>Name</th><th class="r">Have</th><th class="r">Alert at</th><th>Company</th><th>Catalog</th><th>Location</th><th class="r">Order</th></tr></thead><tbody>
+        ${recs.map(r => `<tr class="click" data-act="openRecord" data-id="${r.id}"${tintAttr(r, m)}><td class="name">${flagFor(r, m)}${esc(recName(r))}${pictosInline(r, m)} ${stockBadge(stockState(r, m))}</td>
           <td class="r num">${fmtNum(r.stock || 0)} ${esc(recUnit(r, m))}</td><td class="r num">${fmtNum(r.lowAt ?? m.stock.lowAt)}</td>
-          <td>${esc(val(r, 'company'))}</td><td class="mono-sm">${esc(val(r, 'catalog'))}</td><td>${esc(val(r, 'location'))}</td></tr>`).join('')}
+          <td>${esc(val(r, 'company'))}</td><td class="mono-sm">${esc(val(r, 'catalog'))}</td><td>${esc(val(r, 'location'))}</td>
+          <td class="r">${orderButton(r, m, 'btn sm') || '<span class="muted small">no link</span>'}</td></tr>`).join('')}
         </tbody></table></div></section>`).join('') || '<div class="empty-state"><h2>Nothing to order</h2><p>All items are above their low-stock level.</p></div>'}
     </div>`;
   }
 };
 ACT.copyOrder = () => {
-  const text = orderList().map(({ m, recs }) => `${m.name}\n` + recs.map(r => `- ${recName(r)}${r.data?.company ? ` (${r.data.company})` : ''}${r.data?.catalog ? ` [${r.data.catalog}]` : ''}: have ${fmtNum(r.stock || 0)} ${recUnit(r, m)}`).join('\n')).join('\n\n');
+  const text = orderList().map(({ m, recs }) => `${m.name}\n` + recs.map(r => `- ${recName(r)}${r.data?.company ? ` (${r.data.company})` : ''}${r.data?.catalog ? ` [${r.data.catalog}]` : ''}: have ${fmtNum(r.stock || 0)} ${recUnit(r, m)}${orderUrl(r, m) ? ` — ${orderUrl(r, m)}` : ''}`).join('\n')).join('\n\n');
   navigator.clipboard?.writeText(text).then(() => toast('Order list copied.'), () => toast('Could not copy. Use “Export CSV” instead.', 'warn'));
 };
 ACT.exportOrder = () => downloadCsv(`to_order_${todayIso()}.csv`, orderList().flatMap(({ m, recs }) => recs.map(r => ({
   Module: m.name, Name: recName(r), Have: r.stock || 0, Unit: recUnit(r, m), 'Alert at': r.lowAt ?? m.stock.lowAt,
-  Company: r.data?.company || '', Catalog: r.data?.catalog || '', Location: r.data?.location || ''
+  Company: r.data?.company || '', Catalog: r.data?.catalog || '', Location: r.data?.location || '', 'Order link': orderUrl(r, m)
 }))));
+
+/* ── Activity log ───────────────────────────────────────────────────────── */
+App.actUi = { q: '', person: '' };
+VIEWS.activity = {
+  render() {
+    setPage('Activity', [{ label: 'Activity' }]);
+    const ui = App.actUi;
+    const people = [...new Set(App.log.map(l => l.user).filter(Boolean))].sort();
+    $('#main').innerHTML = `<div class="page">
+      <header class="page-head"><div><h1>Activity</h1><p class="sub">Every change in the inventory: who did what, and when. Newest first.</p></div>
+        <div class="actions"><button class="btn ghost" data-act="exportActivity">Export CSV</button></div></header>
+      <div class="toolbar">
+        <label class="search-box">${ICON.search}<input id="acSearch" type="search" placeholder="Search activity" value="${esc(ui.q)}" aria-label="Search activity"></label>
+        <select id="acPerson" aria-label="Person"><option value="">Everyone</option>${people.map(p => `<option${ui.person === p ? ' selected' : ''}>${esc(p)}</option>`).join('')}</select>
+        <span class="grow"></span><span id="acCount" class="muted small"></span>
+      </div>
+      <div class="panel flush"><div class="tbl-scroll" id="acTable"></div></div></div>`;
+    $('#acSearch').addEventListener('input', e => { ui.q = e.target.value; drawActivity(); });
+    $('#acPerson').addEventListener('change', e => { ui.person = e.target.value; drawActivity(); });
+    drawActivity();
+  }
+};
+function filteredActivity() {
+  const q = App.actUi.q.trim().toLowerCase();
+  return App.log.filter(l => (!App.actUi.person || l.user === App.actUi.person) && (!q || `${l.desc} ${l.user}`.toLowerCase().includes(q)));
+}
+function drawActivity() {
+  const list = filteredActivity();
+  const shown = list.slice(0, 500);
+  $('#acCount').textContent = list.length > shown.length ? `Showing the newest ${fmtNum(shown.length)} of ${fmtNum(list.length)}` : plural(list.length, 'entry', 'entries');
+  $('#acTable').innerHTML = shown.length ? `<table class="tbl"><thead><tr><th>When</th><th>Who</th><th>What</th></tr></thead><tbody>
+    ${shown.map(l => `<tr><td class="nowrap muted">${esc(fmtTs(l.ts))}</td><td class="nowrap">${esc(l.user || '')}</td><td>${esc(l.desc)}</td></tr>`).join('')}</tbody></table>`
+    : '<p class="empty-line">No activity matches.</p>';
+}
+ACT.exportActivity = () => downloadCsv(`activity_${todayIso()}.csv`, filteredActivity().map(l => ({ When: new Date(l.ts).toISOString(), Who: l.user, What: l.desc })));
