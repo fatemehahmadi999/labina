@@ -1,33 +1,18 @@
-/* ──────────────────────────────────────────────────────────────────────────
-   config.js — the ONLY file a lab needs to edit.
-
-   Follow README.md (Step 7) to fill this in for your lab.
-
-   1. labName: your lab's name.
-   2. firebase: replace `null` with the six values from YOUR lab's own
-      Firebase project (Firebase console → Project settings → Your apps).
-   3. emailjs: optional low-stock emails (README → Optional extras).
-
-   While `firebase` is null, the app shows a yellow "Demo mode" banner and
-   saves nothing online.
-   ────────────────────────────────────────────────────────────────────────── */
-
 window.LAB_CONFIG = {
-  // Shown on the sign-in screen before anyone has logged in.
-  labName: 'Lab Inventory',
+  labName: 'Winkler Lab',
 
-  // Paste your Firebase web app config here, for example:
-  // firebase: {
-  //   apiKey: "AIza…",
-  //   authDomain: "my-lab-inventory.firebaseapp.com",
-  //   projectId: "my-lab-inventory",
-  //   storageBucket: "my-lab-inventory.firebasestorage.app",
-  //   messagingSenderId: "123456789",
-  //   appId: "1:123456789:web:abc123"
-  // },
-  firebase: null,
+  firebase: {
+    apiKey: "AIzaSyCeiOhEgeL7UDDJmZtDBDWh94iVXtoGJjY",
+    authDomain: "modular-lab-inventory.firebaseapp.com",
+    projectId: "modular-lab-inventory",
+    storageBucket: "modular-lab-inventory.firebasestorage.app",
+    messagingSenderId: "782336010964",
+    appId: "1:782336010964:web:c21dd637edda1b557c2941"
+  },
 
-  // Optional: low-stock emails through EmailJS (https://www.emailjs.com).
-  // emailjs: { serviceId: "service_…", templateId: "template_…", publicKey: "…" },
-  emailjs: null
+  emailjs: {
+    serviceId: "service_amvww6r",
+    templateId: "template_1dxgs0n",
+    publicKey: "AymB0rXDC8fj0AKiW"
+  }
 };
